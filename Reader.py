@@ -2,29 +2,37 @@ from datetime import datetime, timedelta
 import json
 import csv
 import re
+from time import sleep
 
 from utils import hhmmss, pos_dict
 
 class Reader(object):
     def __init__(self, gnss_data, imu_data):
-        self.gps_hz = 1
-        self.imu_hz = 200
+        self.gps_period = 1. #sec
+        self.imu_period = 1./200 #sec
         self.__gnss = self.__read_gnss(gnss_data)
         self.__imu = self.__read_imu(imu_data)
         self.__pose = pos_dict()
         self.__time_sync()
+    
+    
+    def current_pose(self):
+        return self.__pose['GNSS'], self.__pose['IMU']
 
     def next(self):
         """ Updates GNSS/IMU pose from generators"""
+        sleep(self.imu_period)
         if abs(self.__pose['GNSS']['timestamp'] - self.__pose['IMU']['time']) \
-            < timedelta(seconds=1) - timedelta(milliseconds=1000/(self.imu_hz)):
+            < timedelta(seconds=1) - timedelta(milliseconds=1000*self.imu_period):
             imu_row, imu_time = next(self.__imu)
             self.__update_pose(None, None, imu_row, imu_time)
+            return None, self.__pose['IMU'] 
         else:
             gnss_row, gnss_time = next(self.__gnss)
             imu_row, imu_time = next(self.__imu)
-            self.__update_pose(gnss_row, gnss_time, imu_row, imu_time)        
-        return self.__pose     
+            self.__update_pose(gnss_row, gnss_time, imu_row, imu_time)
+            return self.__pose['GNSS'], self.__pose['IMU']        
+            
 
     def __read_gnss(self, gnss_data):
         """
@@ -67,7 +75,7 @@ class Reader(object):
         while self.__gnss and self.__imu:
             while gnss_time < imu_time:
                 gnss_row, gnss_time = next(self.__gnss)
-            while abs(gnss_time - imu_time) > timedelta(milliseconds=1000/(2*self.imu_hz)):
+            while abs(gnss_time - imu_time) > timedelta(milliseconds=float(1000*self.imu_period/2)):
                 imu_row, imu_time = next(self.__imu)
             break
         if self.__gnss and self.__imu:
@@ -75,6 +83,7 @@ class Reader(object):
         else:
             print('Out of sync.')
             exit()
+
 
     def __update_pose(self, gnss_row = None, gnss_time = None, imu_row = None, imu_time = None):
         """Update util"""

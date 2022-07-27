@@ -21,7 +21,7 @@ class Reader(object):
 
     def next(self):
         """ Updates GNSS/IMU pose from generators"""
-        sleep(self.imu_period)
+        #sleep(self.imu_period)
         if abs(self.__pose['GNSS']['timestamp'] - self.__pose['IMU']['time']) \
             < timedelta(seconds=1) - timedelta(milliseconds=1000*self.imu_period):
             imu_row, imu_time = next(self.__imu)

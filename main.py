@@ -2,7 +2,9 @@ from re import A
 from Reader import Reader
 from Math import GHKFilter
 from utils import unify_measures
-import numpy as np
+from math import sin, cos, radians
+
+from matplotlib import pyplot as plt
 
 
 if __name__ == "__main__":
@@ -16,14 +18,37 @@ if __name__ == "__main__":
     # init 
     gnss, imu = reader.current_pose()
 
-    while True:
-        if gnss != None:
-            gnss_predict = unify_measures(gnss)
-        else:
-            gnss_predict['coords'][0] += gnss_predict["velocity"]*np.cos(gnss_predict["heading"])*dt 
-            gnss_predict['coords'][1] += gnss_predict["velocity"]*np.sin(gnss_predict["heading"])*dt
-        gnss, imu = reader.next()
-        print(gnss_predict)
-        print(imu)
+    x_true = []
+    y_true = []
 
-        input()
+    x_calc, y_calc = [], []
+
+    try: 
+        while True:
+            if gnss != None:
+                gnss_predict = unify_measures(gnss)
+
+                if (len(x_calc) + len(y_calc)) == 0:
+                    x_calc.append(gnss_predict['coords'][0])
+                    y_calc.append(gnss_predict['coords'][1])
+
+                x_true.append(gnss_predict['coords'][0])
+                y_true.append(gnss_predict['coords'][1])
+
+            else:
+                x_calc.append(x_calc[-1] + gnss_predict['velocity']*sin(radians(gnss_predict['heading']))*dt)
+                y_calc.append(y_calc[-1] + gnss_predict['velocity']*cos(radians(gnss_predict['heading']))*dt)
+
+            gnss, imu = reader.next()
+
+            # IMU BLOCK
+
+
+    except StopIteration:
+        plt.plot(x_true, y_true)
+        plt.title('True coords')
+
+        plt.plot(x_calc, y_calc)
+        plt.title('Calc coords (V, Head)')
+
+        plt.show()

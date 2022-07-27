@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
     reader = Reader(path + gnss_data, path + imu_data)
     dt = reader.imu_period
+    g = 9.80665
 
     # init 
     gnss, imu = reader.current_pose()
@@ -53,10 +54,11 @@ if __name__ == "__main__":
                 y_interp.append(y_interp[-1] + (y_true[-1] - y_true[-2])*dt)
 
             gnss, imu = reader.next()
-            #print(x_calc[-1] - x_true[-1], y_calc[-1] - y_true[-1])
-            
 
             # IMU BLOCK
+            print(float(imu['acc_x'])*g, float(imu['acc_y'])*g)
+            input()
+
 
 
     except StopIteration:

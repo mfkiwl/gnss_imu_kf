@@ -50,13 +50,13 @@ def Dead_reckoning(gnss_data, imu_data):
                     ghfilter = GHFilter(x = gnss_predict['coords'], \
                                         dx = [1.8*gnss_predict['velocity']*sin(radians(gnss_predict['heading']))*dt, \
                                               1.8*gnss_predict['velocity']*cos(radians(gnss_predict['heading']))*dt], \
-                                        dt = dt, g = 2/(3*gnss_predict['accuracy'][0]), h = 2/(3*gnss_predict['accuracy'][0])) 
+                                        dt = dt, g = 1/(gnss_predict['accuracy'][0]), h = 1/(gnss_predict['accuracy'][0])) 
 
             pos_nmea.append((pos_nmea[-1][0] + 1.8*gnss_predict['velocity']*sin(radians(gnss_predict['heading']))*dt, \
                             pos_nmea[-1][1] + 1.8*gnss_predict['velocity']*cos(radians(gnss_predict['heading']))*dt))
-            head_nmea.append(gnss_predict['heading'])
+            
             vel_nmea.append(1.8*gnss_predict['velocity'])
-
+            head_nmea.append(gnss_predict['heading'])
 
             head_imu.append(head_imu[-1] - float(imu['gyro_z'])*dt*180/pi)
             vel_imu.append(vel_imu[-1] - float(imu['acc_x'])*g*dt)
@@ -86,7 +86,7 @@ def Dead_reckoning(gnss_data, imu_data):
                 head_ghf.append(gnss_predict['heading'])
 
             gnss, imu = reader.next()
-
+        
 
     except StopIteration:
         pos_true_WGS84 = [pt for pt in Grid_to_WGS84_iter(pos_true)]
@@ -103,7 +103,7 @@ def Dead_reckoning(gnss_data, imu_data):
         plt.title('pose')
 
         plt.subplot(3, 1, 2)
-        #plt.plot([i for i in range(len(vel_true))], vel_true, marker="o", markersize=2, label = 'GNSS speed')
+        plt.plot([i for i in range(len(vel_true))], vel_true, marker="o", markersize=2, label = 'GNSS speed')
         plt.plot([i for i in range(len(vel_imu))], vel_imu, marker="v", markersize=1.5, label = 'IMU speed')
         plt.plot([i for i in range(len(vel_nmea))], vel_nmea, marker = '*', markersize=1.5, label = 'NMEA speed')
         plt.plot([i for i in range(len(vel_ghf))], vel_ghf, marker = '>', markersize=1.5, label = 'GHF speed')
@@ -111,7 +111,7 @@ def Dead_reckoning(gnss_data, imu_data):
         plt.title('velocity')
 
         plt.subplot(3, 1, 3)
-        #plt.plot([i for i in range(len(head_true))], head_true, marker="o", markersize=2, label = 'True heading')
+        plt.plot([i for i in range(len(head_true))], head_true, marker="o", markersize=2, label = 'True heading')
         plt.plot([i for i in range(len(head_imu))], head_imu, marker="v", markersize=1.5, label = 'IMU heading')
         plt.plot([i for i in range(len(head_nmea))], head_nmea, marker = '*', markersize=1.5, label = 'NMEA heading')
         plt.plot([i for i in range(len(head_ghf))], head_ghf, marker = '>', markersize=1.5, label = 'GHF heading')

@@ -34,7 +34,8 @@ class GHFilter(object):
         else:
             try:
                 self.dx_prediction = dx_pred
-                self.x_prediction = x_pred
+                self.x_prediction[0] = self.x[0] + self.dx_prediction[0]*self.dt
+                self.x_prediction[1] = self.x[1] + self.dx_prediction[1]*self.dt
             except:
                 print('Incorrect value')
 

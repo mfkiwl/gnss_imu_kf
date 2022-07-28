@@ -54,15 +54,16 @@ class Reader(object):
         2. Adds row time deltas to start_time 
         3. Yields current row and current timestamp (UTC+3)
         """
-        start_time = datetime.fromtimestamp(float(re.findall('[0-9]+', imu_data)[0])*(10**-9))
-        with open(imu_data) as imu:
-            csv_reader = csv.reader(imu)
-            csv_reader.__next__() #skip header row
-            last = float(next(csv_reader)[-1])
-            for row in csv_reader:
-                start_time += timedelta(seconds = (float(row[-1]) - last))
-                last = float(row[-1])
-                yield row, start_time
+        for i in imu_data:
+            start_time = datetime.fromtimestamp(float(re.findall('[0-9]+', i)[0])*(10**-9))
+            with open(i) as imu:
+                csv_reader = csv.reader(imu)
+                csv_reader.__next__() #skip header row
+                last = float(next(csv_reader)[-1])
+                for row in csv_reader:
+                    start_time += timedelta(seconds = (float(row[-1]) - last))
+                    last = float(row[-1])
+                    yield row, start_time
 
     def __time_sync(self):
         """

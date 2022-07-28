@@ -1,4 +1,4 @@
-from pyproj import transform, Proj
+from pyproj import transform, Proj, Transformer
 import openpylivox as opl
 
 
@@ -19,6 +19,12 @@ def Grid_to_WGS84(x, y):
     InputGrid = Proj(projparams = 'epsg:3857')
     lat, lon = transform(InputGrid, wgs84, x, y)
     return [lon, lat]
+
+def Grid_to_WGS84_iter(points):
+    transformer = Transformer.from_crs(3857, 4326)
+    return transformer.itransform(points)
+
+
 
 # Time HH:MM:SS/F representation
 def hhmmss(synced_time):

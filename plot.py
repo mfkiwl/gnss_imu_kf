@@ -59,7 +59,7 @@ def Dead_reckoning(gnss_data, imu_data):
             head_nmea.append(gnss_predict['heading'])
 
             head_imu.append(head_imu[-1] - float(imu['gyro_z'])*dt*180/pi)
-            vel_imu.append(vel_imu[-1] - float(imu['acc_x'])*g*dt)
+            vel_imu.append(vel_imu[-1] - float(imu['acc_x'])*g*dt + float(imu['acc_y'])*g*dt)
             pos_imu.append((pos_imu[-1][0] + vel_imu[-1]*dt*sin(radians(head_imu[-1])), \
                             pos_imu[-1][1] + vel_imu[-1]*dt*cos(radians(head_imu[-1]))))
 
@@ -68,17 +68,17 @@ def Dead_reckoning(gnss_data, imu_data):
                            vel_imu[-1]*dt*cos(radians(head_imu[-1]))]
             gh_x = pos_imu[-1]
             f_point, f_v = ghfilter.update(z = pos_nmea[-1], dx_pred = gh_dx, x_pred = gh_x)
-
+            vel_ghf.append(f_v[0] + f_v[1])
             pos_ghf.append((f_point[0], f_point[1]))           
 
-            print(sqrt((pos_nmea[-1][0] - pos_ghf[-1][0])**2 + (pos_nmea[-1][1] - pos_ghf[-1][1])**2))
+            #print(sqrt((pos_nmea[-1][0] - pos_ghf[-1][0])**2 + (pos_nmea[-1][1] - pos_ghf[-1][1])**2))
             
             if len(pos_true) >= 2:
                 head_true.append(atan2(pos_true[-1][0]-pos_true[-2][0], pos_true[-1][1]-pos_true[-2][1])*180/pi)
                 vel_true.append(sqrt((pos_true[-1][0] - pos_true[-2][0])**2 + (pos_true[-1][1] - pos_true[-2][1])**2))
 
                 head_ghf.append(atan2(pos_ghf[-1][0]-pos_ghf[-2][0], pos_ghf[-1][1]-pos_ghf[-2][1])*180/pi)
-                vel_ghf.append(sqrt((pos_ghf[-1][0] - pos_ghf[-2][0])**2 + (pos_ghf[-1][1] - pos_ghf[-2][1])**2)/dt)
+                #vel_ghf.append(sqrt((pos_ghf[-1][0] - pos_ghf[-2][0])**2 + (pos_ghf[-1][1] - pos_ghf[-2][1])**2)/dt)
             else:
                 head_true.append(gnss_predict['heading'])
                 vel_true.append(1.8*gnss_predict['velocity'])
